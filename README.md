@@ -35,29 +35,33 @@ The script executes the following steps in sequence:
    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
    ```
 
-## Configuration
-
-Before running the script, you must configure the source and target directories:
-
-1. Open `LatestFileSync.ps1` in a text editor
-2. Locate the configuration section at the top of the script
-3. Update the following variables:
-
-```powershell
-$SourceDirectory = "C:\Path\To\Source"  # Path to source directory
-$TargetDirectory = "C:\Path\To\Target"  # Path to target directory
-$LogFileName = "LatestFileSync.log"     # Log file name (optional, default is LatestFileSync.log)
-```
-
 ## Usage
 
-Once configured, run the script from PowerShell:
+### Basic Usage
+
+Run the script with source and target directory parameters:
 
 ```powershell
-.\LatestFileSync.ps1
+.\LatestFileSync.ps1 -SourceDirectory "C:\Path\To\Source" -TargetDirectory "C:\Path\To\Target"
 ```
 
-The script runs silently without console output. All operations are logged to a file named `LatestFileSync.log` in the target directory.
+### Custom Log File Name
+
+Optionally specify a custom log file name:
+
+```powershell
+.\LatestFileSync.ps1 -SourceDirectory "C:\Documents\Reports" -TargetDirectory "C:\Archive\Latest" -LogFileName "sync.log"
+```
+
+### Getting Help
+
+View parameter help:
+
+```powershell
+Get-Help .\LatestFileSync.ps1 -Detailed
+```
+
+The script runs silently without console output. All operations are logged to a file in the target directory (default: `LatestFileSync.log`).
 
 ### Log File
 

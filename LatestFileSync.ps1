@@ -8,28 +8,49 @@
     and copies that file to the target directory. All operations are logged to a file
     in the target directory.
 
+.PARAMETER SourceDirectory
+    The path to the source directory containing files to sync from. This parameter is mandatory.
+
+.PARAMETER TargetDirectory
+    The path to the target directory where the latest file will be copied. This parameter is mandatory.
+
+.PARAMETER LogFileName
+    Optional. The name of the log file to create in the target directory.
+    If not specified, defaults to "LatestFileSync.log".
+
 .NOTES
     Author: LatestFileSync Project
-    Version: 2.0
+    Version: 3.0
 
     Exit Codes:
     0 - Success
     1 - Error (missing directories, no files found, or operation failure)
 
 .EXAMPLE
-    .\LatestFileSync.ps1
-    Runs the script with the configured source and target directories.
-    Creates a log file named LatestFileSync.log in the target directory.
+    .\LatestFileSync.ps1 -SourceDirectory "C:\Documents\Reports" -TargetDirectory "C:\Archive\Latest"
+    Synchronizes the most recent file from Reports to Latest directory using default log file name.
+
+.EXAMPLE
+    .\LatestFileSync.ps1 -SourceDirectory "C:\Backups" -TargetDirectory "D:\Current" -LogFileName "sync.log"
+    Synchronizes files and uses a custom log file name.
 #>
 
 # ================================================================================
-# CONFIGURATION VARIABLES
+# PARAMETERS
 # ================================================================================
-# Configure these paths according to your needs
 
-$SourceDirectory = "C:\Path\To\Source"  # Path to source directory
-$TargetDirectory = "C:\Path\To\Target"  # Path to target directory
-$LogFileName = "LatestFileSync.log"     # Log file name (will be created in target directory)
+param(
+    [Parameter(Mandatory = $true, HelpMessage = "Path to the source directory")]
+    [ValidateNotNullOrEmpty()]
+    [string]$SourceDirectory,
+
+    [Parameter(Mandatory = $true, HelpMessage = "Path to the target directory")]
+    [ValidateNotNullOrEmpty()]
+    [string]$TargetDirectory,
+
+    [Parameter(Mandatory = $false, HelpMessage = "Name of the log file (created in target directory)")]
+    [string]$LogFileName = "LatestFileSync.log"
+)
 
 # ================================================================================
 # LOGGING FUNCTION

@@ -10,6 +10,8 @@
     - Handles empty source directory
     - Only considers files, not directories
 
+    This test suite uses the parameter-based interface of LatestFileSync.ps1 (Version 3.0+).
+
 .NOTES
     This script creates temporary test directories and cleans them up after testing.
 #>
@@ -74,31 +76,15 @@ function New-TestEnvironment {
     New-Item -Path $TargetPath -ItemType Directory -Force | Out-Null
 }
 
-function Update-ScriptConfiguration {
+function Invoke-ScriptTest {
     param(
         [string]$SourcePath,
-        [string]$TargetPath
+        [string]$TargetPath,
+        [string]$LogFileName = "LatestFileSync.log"
     )
 
-    # Read the script content
-    $ScriptContent = Get-Content $ScriptPath -Raw
-
-    # Replace the configuration variables
-    $ScriptContent = $ScriptContent -replace '\$SourceDirectory = ".*?"', "`$SourceDirectory = `"$SourcePath`""
-    $ScriptContent = $ScriptContent -replace '\$TargetDirectory = ".*?"', "`$TargetDirectory = `"$TargetPath`""
-
-    # Create a temporary script file
-    $TempScriptPath = Join-Path $env:TEMP "LatestFileSync_Test.ps1"
-    Set-Content -Path $TempScriptPath -Value $ScriptContent
-
-    return $TempScriptPath
-}
-
-function Invoke-ScriptTest {
-    param([string]$TempScriptPath)
-
     try {
-        $Output = & $TempScriptPath 2>&1
+        $Output = & $ScriptPath -SourceDirectory $SourcePath -TargetDirectory $TargetPath -LogFileName $LogFileName 2>&1
         $ExitCode = $LASTEXITCODE
         return @{
             Output = $Output
@@ -156,12 +142,10 @@ Write-Host "  middle_file.txt: $MiddleTime" -ForegroundColor Gray
 Write-Host "  newest_file.txt: $NewTime" -ForegroundColor Gray
 
 # Run the script
-$TempScript = Update-ScriptConfiguration -SourcePath $SourcePath -TargetPath $TargetPath
-$Result = Invoke-ScriptTest -TempScriptPath $TempScript
-Remove-Item $TempScript -Force
+$Result = Invoke-ScriptTest -SourcePath $SourcePath -TargetPath $TargetPath
 
-# Verify newest file was copied
-$CopiedFiles = Get-ChildItem -Path $TargetPath -File
+# Verify newest file was copied (exclude log file from count)
+$CopiedFiles = Get-ChildItem -Path $TargetPath -File | Where-Object { $_.Name -ne "LatestFileSync.log" }
 $Passed = ($CopiedFiles.Count -eq 1) -and ($CopiedFiles[0].Name -eq "newest_file.txt")
 Write-TestResult -TestName "Latest File Identification" -Passed $Passed -Message $(if ($Passed) { "Correct file copied" } else { "Expected newest_file.txt, got: $($CopiedFiles.Name -join ', ')" })
 
@@ -189,12 +173,10 @@ New-Item -Path (Join-Path $TargetPath "subfolder1\subfolder_file.txt") -ItemType
 Write-Host "Created in target: 2 files, 2 subfolders (1 with file inside)" -ForegroundColor Gray
 
 # Run the script
-$TempScript = Update-ScriptConfiguration -SourcePath $SourcePath -TargetPath $TargetPath
-$Result = Invoke-ScriptTest -TempScriptPath $TempScript
-Remove-Item $TempScript -Force
+$Result = Invoke-ScriptTest -SourcePath $SourcePath -TargetPath $TargetPath
 
-# Verify files deleted but subfolders preserved
-$TargetFiles = Get-ChildItem -Path $TargetPath -File
+# Verify files deleted but subfolders preserved (exclude log file from count)
+$TargetFiles = Get-ChildItem -Path $TargetPath -File | Where-Object { $_.Name -ne "LatestFileSync.log" }
 $TargetFolders = Get-ChildItem -Path $TargetPath -Directory
 
 $FilesCorrect = ($TargetFiles.Count -eq 1) -and ($TargetFiles[0].Name -eq "source_file.txt")
@@ -226,9 +208,7 @@ New-Item -Path $TargetPath -ItemType Directory -Force | Out-Null
 Write-Host "Source directory does not exist: $SourcePath" -ForegroundColor Gray
 
 # Run the script
-$TempScript = Update-ScriptConfiguration -SourcePath $SourcePath -TargetPath $TargetPath
-$Result = Invoke-ScriptTest -TempScriptPath $TempScript
-Remove-Item $TempScript -Force
+$Result = Invoke-ScriptTest -SourcePath $SourcePath -TargetPath $TargetPath
 
 # Verify exit code is 1
 $Passed = ($Result.ExitCode -eq 1)
@@ -251,9 +231,7 @@ if (Test-Path $TargetPath) { Remove-Item $TargetPath -Recurse -Force }
 Write-Host "Target directory does not exist: $TargetPath" -ForegroundColor Gray
 
 # Run the script
-$TempScript = Update-ScriptConfiguration -SourcePath $SourcePath -TargetPath $TargetPath
-$Result = Invoke-ScriptTest -TempScriptPath $TempScript
-Remove-Item $TempScript -Force
+$Result = Invoke-ScriptTest -SourcePath $SourcePath -TargetPath $TargetPath
 
 # Verify exit code is 1
 $Passed = ($Result.ExitCode -eq 1)
@@ -276,9 +254,7 @@ New-Item -Path (Join-Path $SourcePath "empty_subfolder") -ItemType Directory | O
 Write-Host "Source directory contains only a subfolder, no files" -ForegroundColor Gray
 
 # Run the script
-$TempScript = Update-ScriptConfiguration -SourcePath $SourcePath -TargetPath $TargetPath
-$Result = Invoke-ScriptTest -TempScriptPath $TempScript
-Remove-Item $TempScript -Force
+$Result = Invoke-ScriptTest -SourcePath $SourcePath -TargetPath $TargetPath
 
 # Verify exit code is 1
 $Passed = ($Result.ExitCode -eq 1)
@@ -310,12 +286,10 @@ New-Item -Path $TestFolder -ItemType Directory | Out-Null
 Write-Host "Created file (older) and directory (newer) in source" -ForegroundColor Gray
 
 # Run the script
-$TempScript = Update-ScriptConfiguration -SourcePath $SourcePath -TargetPath $TargetPath
-$Result = Invoke-ScriptTest -TempScriptPath $TempScript
-Remove-Item $TempScript -Force
+$Result = Invoke-ScriptTest -SourcePath $SourcePath -TargetPath $TargetPath
 
-# Verify file was copied (not directory)
-$CopiedFiles = Get-ChildItem -Path $TargetPath -File
+# Verify file was copied (not directory) - exclude log file from count
+$CopiedFiles = Get-ChildItem -Path $TargetPath -File | Where-Object { $_.Name -ne "LatestFileSync.log" }
 $CopiedFolders = Get-ChildItem -Path $TargetPath -Directory
 
 $Passed = ($CopiedFiles.Count -eq 1) -and ($CopiedFiles[0].Name -eq "test_file.txt") -and ($CopiedFolders.Count -eq 0)
@@ -338,9 +312,7 @@ New-Item -Path (Join-Path $SourcePath "success_test.txt") -ItemType File | Out-N
 Write-Host "Created test file in source" -ForegroundColor Gray
 
 # Run the script
-$TempScript = Update-ScriptConfiguration -SourcePath $SourcePath -TargetPath $TargetPath
-$Result = Invoke-ScriptTest -TempScriptPath $TempScript
-Remove-Item $TempScript -Force
+$Result = Invoke-ScriptTest -SourcePath $SourcePath -TargetPath $TargetPath
 
 # Verify exit code is 0
 $Passed = ($Result.ExitCode -eq 0)

@@ -8,7 +8,7 @@ LatestFileSync is a utility that synchronizes the most recently created file fro
 
 ## Project Status
 
-This project is implemented as a PowerShell script for Windows environments. The core functionality is complete and tested. Version 2.0 includes file-based logging instead of console output.
+This project is implemented as a PowerShell script for Windows environments. The core functionality is complete and tested. Version 3.0 uses parameters for directory configuration instead of hardcoded variables.
 
 ## PowerShell Script Specifications
 
@@ -42,8 +42,12 @@ The script performs the following operations in sequence:
 - Include proper error handling with try-catch blocks
 
 **Configuration:**
-- Source and target directory paths defined as variables at the top of the script
-- These variables should be clearly marked for user configuration
+- Source and target directory paths are provided as mandatory script parameters
+- LogFileName is an optional parameter with default value "LatestFileSync.log"
+- Parameters must include proper validation:
+  - SourceDirectory: Mandatory, ValidateNotNullOrEmpty
+  - TargetDirectory: Mandatory, ValidateNotNullOrEmpty
+  - LogFileName: Optional with default value "LatestFileSync.log"
 
 **Error Handling:**
 The script must gracefully handle the following scenarios:
@@ -80,11 +84,14 @@ The script should follow this structure:
 
 1. **Header Comment Block**
    - Script name, purpose, and usage instructions
+   - Parameter documentation (.PARAMETER for each parameter)
+   - Usage examples (.EXAMPLE)
 
-2. **Configuration Variables Section**
-   - `$SourceDirectory` - Path to source directory
-   - `$TargetDirectory` - Path to target directory
-   - `$LogFileName` - Name of the log file (created in target directory)
+2. **Parameters Section**
+   - `param()` block with:
+     - `$SourceDirectory` - Mandatory parameter for source directory path
+     - `$TargetDirectory` - Mandatory parameter for target directory path
+     - `$LogFileName` - Optional parameter with default value "LatestFileSync.log"
 
 3. **Logging Function**
    - Define a `Write-Log` function that accepts message and level parameters
