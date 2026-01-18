@@ -1,6 +1,6 @@
 # LatestFileSync
 
-A PowerShell utility that synchronizes the most recently created file from a source directory to a target directory. The script clears the target directory of files (while preserving subfolders) and copies only the latest file from the source.
+A PowerShell utility that synchronizes the most recently created file from a source directory to a target directory. The script clears the target directory of files (while preserving subfolders) and copies only the latest file from the source. All operations are logged to a file in the target directory.
 
 ## Overview
 
@@ -46,6 +46,7 @@ Before running the script, you must configure the source and target directories:
 ```powershell
 $SourceDirectory = "C:\Path\To\Source"  # Path to source directory
 $TargetDirectory = "C:\Path\To\Target"  # Path to target directory
+$LogFileName = "LatestFileSync.log"     # Log file name (optional, default is LatestFileSync.log)
 ```
 
 ## Usage
@@ -56,34 +57,49 @@ Once configured, run the script from PowerShell:
 .\LatestFileSync.ps1
 ```
 
-The script will:
-- Display validation messages in cyan
-- Show the latest file identified with its creation time and size
-- Log file deletion operations in gray
-- Report success in green or errors in red
+The script runs silently without console output. All operations are logged to a file named `LatestFileSync.log` in the target directory.
 
-### Example Output
+### Log File
+
+The script creates and maintains a log file in the target directory with the following characteristics:
+
+- **Location**: Target directory (e.g., `C:\Archive\Latest\LatestFileSync.log`)
+- **Format**: `[Timestamp] [Level] Message`
+- **Levels**: INFO, SUCCESS, WARNING, ERROR
+- **Behavior**: Appends to existing log file (not overwritten on each run)
+- **Protection**: The log file is never deleted by the script
+
+### Example Log Output
 
 ```
-LatestFileSync - Starting synchronization...
+[2026-01-17 20:45:30] [INFO] LatestFileSync - Starting synchronization
+[2026-01-17 20:45:30] [INFO] Source: C:\Documents\Reports
+[2026-01-17 20:45:30] [INFO] Target: C:\Archive\Latest
+[2026-01-17 20:45:30] [SUCCESS] Validation successful
+[2026-01-17 20:45:30] [INFO] Finding latest file in source directory
+[2026-01-17 20:45:30] [SUCCESS] Latest file identified: Report_2026-01-17.pdf
+[2026-01-17 20:45:30] [INFO] Created: 01/17/2026 20:45:25
+[2026-01-17 20:45:30] [INFO] Size: 245.67 KB
+[2026-01-17 20:45:30] [INFO] Deleting files from target directory
+[2026-01-17 20:45:30] [INFO] Deleted: Report_2026-01-16.pdf
+[2026-01-17 20:45:30] [SUCCESS] Deleted 1 file(s) from target directory
+[2026-01-17 20:45:30] [INFO] Copying latest file to target directory
+[2026-01-17 20:45:31] [SUCCESS] Successfully copied: Report_2026-01-17.pdf
+[2026-01-17 20:45:31] [SUCCESS] Synchronization completed successfully
+```
 
-Validation successful
-  Source: C:\Documents\Reports
-  Target: C:\Archive\Latest
+### Viewing the Log
 
-Finding latest file in source directory...
-Latest file identified: Report_2026-01-17.pdf
-  Created: 01/17/2026 20:45:30
-  Size: 245.67 KB
+To view the log file in real-time:
 
-Deleting files from target directory...
-  Deleted: Report_2026-01-16.pdf
-Deleted 1 file(s) from target directory
+```powershell
+Get-Content "C:\Path\To\Target\LatestFileSync.log" -Tail 20
+```
 
-Copying latest file to target directory...
-Successfully copied: Report_2026-01-17.pdf
+Or to monitor it continuously:
 
-Synchronization completed successfully!
+```powershell
+Get-Content "C:\Path\To\Target\LatestFileSync.log" -Wait -Tail 10
 ```
 
 ## Exit Codes
@@ -122,6 +138,9 @@ All tests create temporary directories and clean up automatically.
 - **CreationTime is used**: The script uses the file's CreationTime property, not LastWriteTime or LastAccessTime
 - **No prompts**: The script runs unattended without user interaction
 - **Overwrites existing files**: If a file with the same name exists in the target, it will be overwritten
+- **Silent operation**: The script does not output to console; all information is logged to file
+- **Log file protection**: The log file (`LatestFileSync.log`) is never deleted and persists across runs
+- **Log file format**: Each log entry includes timestamp and severity level for easy parsing and monitoring
 
 ## Use Cases
 

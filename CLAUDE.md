@@ -8,7 +8,7 @@ LatestFileSync is a utility that synchronizes the most recently created file fro
 
 ## Project Status
 
-This project will be implemented as a PowerShell script for Windows environments. The core functionality has not yet been implemented.
+This project is implemented as a PowerShell script for Windows environments. The core functionality is complete and tested. Version 2.0 includes file-based logging instead of console output.
 
 ## PowerShell Script Specifications
 
@@ -54,11 +54,16 @@ The script must gracefully handle the following scenarios:
 - File deletion failures
 
 **Logging:**
-- Use `Write-Host` or `Write-Output` for major operational steps
+- All messages must be written to a log file in the target directory
+- Do NOT write output to console (except for critical validation errors before log file can be created)
+- Log file should be named `LatestFileSync.log` by default
+- Log entries must include timestamps in format: `yyyy-MM-dd HH:mm:ss`
+- Log entries must include severity level: INFO, SUCCESS, WARNING, ERROR
+- Log format: `[Timestamp] [Level] Message`
 - Log when deleting files from target directory
 - Log which file is identified as the latest
 - Log when copying the file
-- Consider using colored output for better readability (e.g., green for success, yellow for warnings, red for errors)
+- The log file itself must be excluded from deletion operations
 
 **User Interaction:**
 - No user input prompts during execution
@@ -79,24 +84,34 @@ The script should follow this structure:
 2. **Configuration Variables Section**
    - `$SourceDirectory` - Path to source directory
    - `$TargetDirectory` - Path to target directory
+   - `$LogFileName` - Name of the log file (created in target directory)
 
-3. **Validation Section**
+3. **Logging Function**
+   - Define a `Write-Log` function that accepts message and level parameters
+   - Function appends timestamped entries to the log file
+   - Function handles cases where log file cannot be written
+
+4. **Validation Section**
    - Check if source directory exists
    - Check if target directory exists
    - Exit with error code 1 if either validation fails
+   - Initialize log file path after validation
+   - Begin logging operations
 
-4. **Find Latest File Logic**
+5. **Find Latest File Logic**
    - Get all files from source directory
    - Check if any files exist
    - Sort by CreationTime and select the most recent
    - Exit with error code 1 if no files found
+   - Log the identified file details
 
-5. **Delete Files from Target**
+6. **Delete Files from Target**
    - Get all files (not directories) from target directory
-   - Remove each file
-   - Log the deletion operation
+   - Exclude the log file from deletion list
+   - Remove each file (except log file)
+   - Log each deletion operation
 
-6. **Copy Latest File to Target**
+7. **Copy Latest File to Target**
    - Copy the latest file to target directory
    - Log the copy operation
    - Handle any copy errors
@@ -108,3 +123,6 @@ The script should follow this structure:
 - The script focuses on files only; subdirectories in both source and target are ignored
 - "Latest" is determined solely by the `CreationTime` property
 - The script does not follow symlinks or process hidden files unless explicitly configured
+- The log file (`LatestFileSync.log`) is created in the target directory and appends entries on each run
+- The log file persists across runs and is never deleted by the script
+- Console output is minimized to only critical errors during validation (before log file can be initialized)
