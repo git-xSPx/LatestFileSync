@@ -145,7 +145,7 @@ Write-Host "  newest_file.txt: $NewTime" -ForegroundColor Gray
 $Result = Invoke-ScriptTest -SourcePath $SourcePath -TargetPath $TargetPath
 
 # Verify newest file was copied (exclude log file from count)
-$CopiedFiles = Get-ChildItem -Path $TargetPath -File | Where-Object { $_.Name -ne "LatestFileSync.log" }
+$CopiedFiles = Get-ChildItem -Path $TargetPath | Where-Object { -not $_.PSIsContainer -and $_.Name -ne "LatestFileSync.log" }
 $Passed = ($CopiedFiles.Count -eq 1) -and ($CopiedFiles[0].Name -eq "newest_file.txt")
 Write-TestResult -TestName "Latest File Identification" -Passed $Passed -Message $(if ($Passed) { "Correct file copied" } else { "Expected newest_file.txt, got: $($CopiedFiles.Name -join ', ')" })
 
@@ -176,7 +176,7 @@ Write-Host "Created in target: 2 files, 2 subfolders (1 with file inside)" -Fore
 $Result = Invoke-ScriptTest -SourcePath $SourcePath -TargetPath $TargetPath
 
 # Verify files deleted but subfolders preserved (exclude log file from count)
-$TargetFiles = Get-ChildItem -Path $TargetPath -File | Where-Object { $_.Name -ne "LatestFileSync.log" }
+$TargetFiles = Get-ChildItem -Path $TargetPath | Where-Object { -not $_.PSIsContainer -and $_.Name -ne "LatestFileSync.log" }
 $TargetFolders = Get-ChildItem -Path $TargetPath -Directory
 
 $FilesCorrect = ($TargetFiles.Count -eq 1) -and ($TargetFiles[0].Name -eq "source_file.txt")
@@ -289,7 +289,7 @@ Write-Host "Created file (older) and directory (newer) in source" -ForegroundCol
 $Result = Invoke-ScriptTest -SourcePath $SourcePath -TargetPath $TargetPath
 
 # Verify file was copied (not directory) - exclude log file from count
-$CopiedFiles = Get-ChildItem -Path $TargetPath -File | Where-Object { $_.Name -ne "LatestFileSync.log" }
+$CopiedFiles = Get-ChildItem -Path $TargetPath | Where-Object { -not $_.PSIsContainer -and $_.Name -ne "LatestFileSync.log" }
 $CopiedFolders = Get-ChildItem -Path $TargetPath -Directory
 
 $Passed = ($CopiedFiles.Count -eq 1) -and ($CopiedFiles[0].Name -eq "test_file.txt") -and ($CopiedFolders.Count -eq 0)

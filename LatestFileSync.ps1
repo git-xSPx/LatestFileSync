@@ -110,7 +110,7 @@ Write-Log -Message "Finding latest file in source directory" -Level "INFO"
 
 try {
     # Get all files (not directories) from source directory
-    $SourceFiles = Get-ChildItem -Path $SourceDirectory -File -ErrorAction Stop
+    $SourceFiles = Get-ChildItem -Path $SourceDirectory -ErrorAction Stop | Where-Object { -not $_.PSIsContainer }
 
     # Check if any files exist
     if ($SourceFiles.Count -eq 0) {
@@ -138,7 +138,7 @@ Write-Log -Message "Deleting files from target directory" -Level "INFO"
 
 try {
     # Get all files (not directories) from target directory (excluding log file)
-    $TargetFiles = Get-ChildItem -Path $TargetDirectory -File -ErrorAction Stop | Where-Object { $_.Name -ne $LogFileName }
+    $TargetFiles = Get-ChildItem -Path $TargetDirectory -ErrorAction Stop | Where-Object { -not $_.PSIsContainer -and $_.Name -ne $LogFileName }
 
     if ($TargetFiles.Count -eq 0) {
         Write-Log -Message "No files to delete in target directory" -Level "INFO"
