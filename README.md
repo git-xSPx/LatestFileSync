@@ -53,18 +53,9 @@ Optionally specify a custom log file name:
 .\LatestFileSync.ps1 -SourceDirectory "C:\Documents\Reports" -TargetDirectory "C:\Archive\Latest" -LogFileName "sync.log"
 ```
 
-### Getting Help
-
-View parameter help:
-
-```powershell
-Get-Help .\LatestFileSync.ps1 -Detailed
-```
-
-The script runs silently without console output. All operations are logged to a file in the target directory (default: `LatestFileSync.log`).
-
 ### Log File
 
+The script runs silently without console output. All operations are logged to a file in the target directory (default: `LatestFileSync.log`).
 The script creates and maintains a log file in the target directory with the following characteristics:
 
 - **Location**: Target directory (e.g., `C:\Archive\Latest\LatestFileSync.log`)
