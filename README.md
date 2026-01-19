@@ -53,6 +53,22 @@ Optionally specify a custom log file name:
 .\LatestFileSync.ps1 -SourceDirectory "C:\Documents\Reports" -TargetDirectory "C:\Archive\Latest" -LogFileName "sync.log"
 ```
 
+### Integration with Effector Saver 3 (or Task Scheduler)
+
+When running the script as a Windows service (Session 0) or through automation tools like Effector saver 3, it is crucial to use specific flags to prevent the process from hanging or failing due to lack of interactivity.
+
+To run the script directly from the Arbitrary Commands field without using an intermediate batch file, use the following syntax:
+
+```
+powershell -NoProfile -InputFormat None -ExecutionPolicy Bypass -File "C:\Path\To\Script\LatestFileSync.ps1" -SourceDirectory "C:\Path\To\Source" -TargetDirectory "C:\Path\To\Target"
+```
+
+or
+
+```
+powershell.exe -NoProfile -NonInteractive -InputFormat None -ExecutionPolicy Bypass -Command "& { $ProgressPreference = 'SilentlyContinue'; & 'C:\Path\To\Script\LatestFileSync.ps1' -SourceDirectory 'C:\Path\To\Source' -TargetDirectory 'C:\Path\To\Target' }"
+```
+
 ### Log File
 
 The script runs silently without console output. All operations are logged to a file in the target directory (default: `LatestFileSync.log`).
